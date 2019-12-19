@@ -1,7 +1,4 @@
-library(shiny)
-library(shinydashboard)
-library(shinydashboardPlus)
-library(shinyWidgets)
+source("global.R")
 
 shinyApp(
   ui = dashboardPagePlus(skin = "yellow", md = FALSE,
@@ -16,7 +13,7 @@ shinyApp(
                                id = "select_num_samples",
                                title = "Number of Samples",
                                icon = "sliders",
-                               badgeStatus = "success",
+                               badgeStatus = "warning",
                                sliderInput(
                                  inputId = "n_sim_samples",
                                  label = "Number of observations",
@@ -29,13 +26,34 @@ shinyApp(
                                id = "select_plotting",
                                title = "Plotting",
                                icon = "chart-bar",
+                               badgeStatus = "warning",
                                prettyRadioButtons(
                                  inputId = "plotting_library",
                                  label = "Plotting Library", 
                                  thick = TRUE,
                                  choices = c("Plotly", "Bokeh"),
-                                 animation = "pulse", 
-                                 status = "primary"
+                                 animation = "pulse"
+                               )
+                             ),
+                             dropdownBlock(
+                               id = "upload_file",
+                               title = "Attach Data",
+                               icon = "file-upload",
+                               badgeStatus = "warning",
+                               fileInput("file1", "Choose CSV File",
+                                         multiple = TRUE,
+                                         accept = c("text/csv",
+                                                    "text/comma-separated-values,text/plain",
+                                                    ".csv")),
+                               
+                               # Horizontal line ----
+                               tags$hr(),
+                               prettyRadioButtons(
+                                 inputId = "header",
+                                 label = "Header", 
+                                 thick = TRUE,
+                                 choices = c("True", "False"),
+                                 animation = "pulse"
                                )
                              )
                            ),
@@ -49,49 +67,23 @@ shinyApp(
                          ),
                          dashboardSidebar(
                            sidebarMenu(
+                             id="my_left_tabs",
                              menuItem(
-                               text = "New rightSidebar", 
-                               tabName = "rightsidebar",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("gears")
+                               text = "Causal Simulate", 
+                               tabName = "sim",
+                               icon = icon("dice-two")
                              ),
-                             menuItem(
-                               text = "Improved header", 
-                               tabName = "header",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("folder-open")
-                             ),
-                             menuItem(
-                               text = "New boxes", 
-                               tabName = "boxes",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("briefcase")
-                             ),
-                             menuItem(
-                               text = "New buttons", 
-                               tabName = "buttons",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("cubes")
-                             ),
-                             menuItem(
-                               text = "New Box elements", 
-                               tabName = "boxelements",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("th")
-                             ),
-                             menuItem(
-                               text = "New extra elements", 
-                               tabName = "extraelements",
-                               badgeLabel = "new", 
-                               badgeColor = "green",
-                               icon = icon("plus-circle")
-                             )
+                           menuItem(
+                             text = "Causal Query", 
+                             tabName = "query",
+                             icon = icon("question")
+                           ),
+                           menuItem(
+                             text = "View Data", 
+                             tabName = "data",
+                             icon = icon("database")
                            )
+                          )
                          ),
                          rightsidebar = rightSidebar(
                            background = "dark",
@@ -122,18 +114,16 @@ shinyApp(
                            )
                          ),
                          dashboardBody(
+                           tags$head( 
+                             tags$style(HTML(".main-sidebar { font-size: 16px; }"),
+                                        HTML(".sidebar-menu li { margin-bottom: 20px; }")) 
+                           ),
                            
                            # use a bit of shinyEffects
                            setShadow(class = "dropdown-menu"),
                            setShadow(class = "box"),
                            
                            shiny::tags$head(
-                             # shiny::includeCSS(
-                             #   system.file("css", "qtcreator_dark.css", package = "shinydashboardPlus")
-                             # ),
-                             # shiny::includeScript(
-                             #   system.file("js", "highlight.pack.js", package = "shinydashboardPlus")
-                             # )
                              shiny::tags$style(
                                rel = "stylesheet",
                                type = "text/css",
@@ -143,17 +133,17 @@ shinyApp(
                              shiny::tags$script(
                                src = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
                              )
-                           )#,
+                           ),
                            
                            # All tabs
-                           # tabItems(
-                           #   rightsidebar_tab,
-                           #   header_tab,
-                           #   boxes_tab,
+                           tabItems(
+                              simulate_tab,
+                              query_tab,
+                              data_tab
                            #   buttons_tab,
                            #   box_elements_tab,
                            #   extra_elements_tab
-                           # )
+                           )
                          ),
                          title = "shinyDashboardPlus",
                          footer = dashboardFooter(
@@ -161,7 +151,7 @@ shinyApp(
                            right_text = "© 2019"
                          )
   ),
-  server = function(input, output) {
+  server = function(input, output, session) {
     output$distPlot <- renderPlot({
       hist(rnorm(input$obs))
     })
@@ -184,24 +174,19 @@ shinyApp(
       hist(rnorm(input$slider_boxsidebar))
     })
     
-    # output$about <- renderUser({
-    #   dashboardUser(
-    #     name = "Causal Sim", 
-    #     src = "https://upload.wikimedia.org/wikipedia/commons/1/1f/Feynmann_Diagram_Gluon_Radiation.svg", 
-    #     title = "Metonymize",
-    #     subtitle = "Author", 
-    #     fluidRow(
-    #       dashboardUserItem(
-    #         width = 6,
-    #         descriptionBlock(
-    #           text = "A tool to do blah blah", 
-    #           right_border = TRUE,
-    #           margin_bottom = FALSE
-    #         )
-    #       )
-    #     )
-    #   )
-    # }
-    # )
+    output$contents <- renderTable({
+      # input$file1 will be NULL initially.
+       req(input$file1)
+       df <- read.csv(input$file1$datapath,
+                     header = input$header == "True")
+      return(df)
+    })
+  
+    new_tab = "sim"
+    observeEvent(input$switchtab, {
+      newtab <- input$my_left_tabs
+    })
+    
+    isolate({updateTabItems(session, "my_left_tabs", new_tab)})
   }
 )
