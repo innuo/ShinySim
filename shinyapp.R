@@ -4,7 +4,7 @@ library(shinydashboardPlus)
 library(shinyWidgets)
 
 shinyApp(
-  ui = dashboardPagePlus(md = FALSE,
+  ui = dashboardPagePlus(skin = "yellow", md = FALSE,
                          dashboardHeaderPlus(
                            fixed = TRUE,
                            title = tagList(
@@ -16,6 +16,7 @@ shinyApp(
                                id = "select_num_samples",
                                title = "Number of Samples",
                                icon = "sliders",
+                               badgeStatus = "success",
                                sliderInput(
                                  inputId = "n_sim_samples",
                                  label = "Number of observations",
@@ -45,7 +46,6 @@ shinyApp(
                              headerText = "Causal Sim (by Metonymize)",
                              messageItem("", "A tool to do blah, blah. Find out more at ... ", icon=icon("info"))
                            )
-                            #, userOutput("about")
                          ),
                          dashboardSidebar(
                            sidebarMenu(
@@ -97,37 +97,28 @@ shinyApp(
                            background = "dark",
                            rightSidebarTabContent(
                              id = 1,
-                             title = "Tab 1",
-                             icon = "desktop",
-                             active = TRUE,
-                             sliderInput(
-                               inputId = "inputsidebar1", 
-                               label = "Number of observations:",
-                               min = 0, 
-                               max = 1000, 
-                               value = 500
-                             )
+                             title = "Not Implemented",
+                             icon = "project-diagram",
+                             active = TRUE#,
+                             #sliderInput(
+                             #   inputId = "inputsidebar1", 
+                             #  label = "Number of observations:",
+                             #   min = 0, 
+                             #   max = 1000, 
+                             #   value = 500
+                             #)
                            ),
                            rightSidebarTabContent(
                              id = 2,
-                             title = "Tab 2",
-                             textInput(
-                               inputId = "inputsidebar2", 
-                               label = "Caption", 
-                               "Data Summary"
-                             )
-                           ),
-                           rightSidebarTabContent(
-                             id = 3,
                              icon = "paint-brush",
-                             title = "Tab 3",
-                             numericInput(
-                               inputId = "inputsidebar3", 
-                               label = "Observations:", 
-                               value = 10, 
-                               min = 1, 
-                               max = 100
-                             )
+                             title = "Not Implemented"#,
+                             #numericInput(
+                            #   inputId = "inputsidebar3", 
+                            #  label = "Observations:", 
+                            #   value = 10, 
+                            #   min = 1, 
+                            #   max = 100
+                            # )
                            )
                          ),
                          dashboardBody(
