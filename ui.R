@@ -54,6 +54,14 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  thick = TRUE,
                                  choices = c("True", "False"),
                                  animation = "pulse"
+                               ),
+                               tags$hr(),
+                               prettyRadioButtons(
+                                 inputId = "missing",
+                                 label = "Missing Values", 
+                                 thick = TRUE,
+                                 choices = c("Drop", "Fill"),
+                                 animation = "pulse"
                                )
                              )
                            ),
