@@ -16,6 +16,16 @@ server = function(input, output, session) {
     do.call(tabsetPanel, myTabs)
   }))
   
+  
+  observeEvent(values$num_datasets, output$pairs_plot_checkbox <- renderUI({
+      rbind_data()
+      choices <-  colnames(sim_state$dataset_rbinded)
+      checkboxGroupInput("columns_checkbox","Select Columns to Plot", choices = choices, selected = choices[1:3], inline = TRUE)
+    }))
+  
+  observeEvent(input$pairs_plot_button, 
+               output$pairs_plot <- renderPlotly(pairs_plot(input$columns_checkbox)))
+  
   graph_data = reactiveValues(
     nodes = sim_state$causal_graph$nodes,
     edges = sim_state$causal_graph$edges

@@ -3,7 +3,12 @@ data_tab <- tabItem(
   
   br(),br(),br(),
   
-  uiOutput('data_tables')  
+  actionButton(inputId ="pairs_plot_button", label="Make Pairs Plot"),
+  uiOutput('pairs_plot_checkbox'),
+  
+  br(), br(),
+  plotlyOutput("pairs_plot")
+  
   # tabsetPanel(
   #   id = 'dataset',
   #   tabPanel("diamonds", DT::dataTableOutput("mytable1")),
