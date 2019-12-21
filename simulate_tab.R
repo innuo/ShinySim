@@ -2,6 +2,6 @@ simulate_tab <- tabItem(
   tabName = "sim",
   
   br(),br(),br(),
-  
-  tableOutput("contents")
+  visNetworkOutput('editable_network')
+  #tableOutput("contents")
 )

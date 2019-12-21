@@ -2,10 +2,10 @@ library(CausalSimR)
 
 
 
-sim_state <- list(causal_graph = NULL,
-                  dataset_list = list(),
+sim_state <- list(dataset_list = list(),
                   dataset_rbinded = NULL,
-                  sim_dataset = NULL,
+                  causal_graph = NULL,
+                  #sim_dataset = NULL,
                   sim = NULL,
                   ready = FALSE)
 
@@ -16,7 +16,7 @@ attach_data <- function(path, header, missing, name){
   #print(path)
   dataset_name <- tail(unlist(strsplit(name, "[/]|[\\\\]")), 1)
   sim_state$dataset_list[[dataset_name]] <<- df
-  #print(length(sim_state$dataset_list))
+  rbind_data()
 }
 
 rbind_data <- function(){
