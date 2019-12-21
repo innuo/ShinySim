@@ -31,8 +31,8 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  inputId = "plotting_library",
                                  label = "Plotting Library", 
                                  thick = TRUE,
-                                 choices = c("Plotly", "Bokeh"),
-                                 animation = "pulse"
+                                 choices = c("Plotly", "Bojkeh"),
+                                 animation = "smooth"
                                )
                              ),
                              dropdownBlock(
@@ -53,7 +53,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  label = "Header", 
                                  thick = TRUE,
                                  choices = c("True", "False"),
-                                 animation = "pulse"
+                                 animation = "smooth"
                                ),
                                tags$hr(),
                                prettyRadioButtons(
@@ -61,7 +61,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  label = "Missing Values", 
                                  thick = TRUE,
                                  choices = c("Drop", "Fill"),
-                                 animation = "pulse"
+                                 animation = "smooth"
                                )
                              )
                            ),
