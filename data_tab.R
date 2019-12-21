@@ -6,6 +6,11 @@ data_tab <- tabItem(
      
     br(),br(), 
     uiOutput('dataplot_ui')),
+    tags$head(tags$style(HTML("
+                              .shiny-split-layout > div {
+                                overflow: visible;
+                              }
+                              "))),
   fluidRow(plotlyOutput("data_plot"))
   
   # tabsetPanel(

@@ -44,12 +44,18 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
   data <- data[sample(1:nrow(data), num_samples),]
   
   # build graph with ggplot syntax
-  p <- ggplot(data, aes_string(x = x, y = y, color = color)) + 
-    geom_point()
+  p <- ggplot(data, aes_string(x = x, y = y, color = color)) 
+  
+  if(class(data[[x]]) == "factor")
+    p <- p+geom_jitter(width=0.1)
+  else
+    p <- p+geom_point() 
+  
   
   # if at least one facet column/row is specified, add it
   facets <- paste(facet_row, '~', facet_col)
   if (facets != '. ~ .') p <- p + facet_grid(facets)
+  
   
   ggplotly(p) 
 }

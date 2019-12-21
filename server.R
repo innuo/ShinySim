@@ -52,7 +52,7 @@ server = function(input, output, session) {
     rbind_data()
     cols=names(sim_state$dataset_rbinded)
     print(cols)
-    sidebarPanel(
+    splitLayout(
     sliderInput('sampleSize', 'Sample Size', min = 100, max = 500,
                 value = 200, step = 20, round = 0),
     selectInput('x', 'X', choices = cols, selected = cols[1]),
@@ -60,8 +60,8 @@ server = function(input, output, session) {
     selectInput('color', 'Color', choices = cols),
     
     selectInput('facet_row', 'Facet Row', c(None = '.', cols)),
-    selectInput('facet_col', 'Facet Column', c(None = '.', cols))
-    )}
+    selectInput('facet_col', 'Facet Column', c(None = '.', cols)),
+    width = 6)}
   ))
   
   observeEvent(input$pairs_plot_button, 
