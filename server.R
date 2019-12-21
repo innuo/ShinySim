@@ -3,6 +3,8 @@ source("global.R")
 server = function(input, output, session) {
   
   num_datasets <- reactiveVal(0)
+  
+  output$num_datasets <- reactive(num_datasets())
 
   observeEvent(input$file1$datapath, 
                attach_data(input$file1$datapath, input$header, input$missing, input$file1$name))
@@ -44,6 +46,9 @@ server = function(input, output, session) {
                   nodes = NULL,
                   edges = NULL
                   )
+    
+    output$graph_updated <- reactive(!is.null(graph_data$nodes))
+    
   
   #on switch tab
   #observeEvent(input$switchtab, {
@@ -76,6 +81,6 @@ server = function(input, output, session) {
                                                                               input$sampleSize, input$color, 
                                                                               input$facet_row, input$facet_col
                                                                               )))
-
+  outputOptions(output, "graph_updated", suspendWhenHidden = FALSE)
  
 }
