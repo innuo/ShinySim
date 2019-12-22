@@ -11,20 +11,13 @@ library(DT)
 library(visNetwork)
 library(plotly)
 library(GGally)
+library(jsonlite)
 
-
+## NOT USED
 pairs_plot <- function(columns){
   n <- length(columns)
   data <- subset(sim_state$dataset_rbinded, select = columns)
   if(nrow(data) > 500) data <- data[sample(1:nrow(data), 500),]
-  # p <- ggpairs(data=data, combo="dot",
-  #              diag = list(continuous = "naDiag", discrete = "naDiag", na = "naDiag")) 
-  # l <-ggplotly(p) 
-  # l$x$layout$width <- NULL
-  # l$x$layout$height <- NULL
-  # l$width <- NULL
-  # l$height <- NULL
-  # l
   is.factor <- do.call(c, lapply(data, class)) == "factor"
   group = if (any(is.factor)) data[,which(is.factor)[1]] else NULL
   p <- pairsD3(data, group=group)
@@ -59,6 +52,27 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
   
   ggplotly(p) 
 }
+
+
+simulation_plot <- function(sim.df, input.col, ouput_col){
+  print(input.col)
+  data <- subset(sim_state$dataset_rbinded, select=c(input.col, output.col))
+  data$Provenance <- "Raw Data"
+  data <- na.omit(data)
+  sim.df$Provenance <- "Simulated"
+  data <- rbind.data.frame(data, subset(sim.df, select =c(input.col, output.col, "Provenance")))
+  
+  p <- ggplot(data, aes_string(x = input.col, y = output.col, color = Provenance)) 
+  
+  if(class(data[[input.col]]) == "factor")
+    p <- p+geom_jitter(width=0.1)
+  else
+    p <- p+geom_point() 
+  
+  ggplotly(p)
+  
+}
+
 
 # tabs
 source("simulate_tab.R")

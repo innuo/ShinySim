@@ -148,9 +148,6 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                               simulate_tab,
                               query_tab,
                               data_tab
-                           #   buttons_tab,
-                           #   box_elements_tab,
-                           #   extra_elements_tab
                            )
                          ),
                          title = "shinyDashboardPlus",

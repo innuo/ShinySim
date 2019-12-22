@@ -2,23 +2,19 @@ source("global.R")
 
 server = function(input, output, session) {
   
-  num_datasets <- reactiveVal(0)
+  num.datasets <- reactiveVal(0)
+  simulation.done <- reactiveVal(FALSE)
   
-  output$num_datasets <- reactive(num_datasets())
+  output$num.datasets <- reactive(num.datasets())
 
   observeEvent(input$file1$datapath, 
                attach_data(input$file1$datapath, input$header, input$missing, input$file1$name))
-  observeEvent(input$file1$datapath, num_datasets(num_datasets()+1))
-  
-  # observeEvent(input$file1$datapath, output$pairs_plot_checkbox <- renderUI({
-  #     choices <-  colnames(sim_state$dataset_rbinded)
-  #     checkboxGroupInput("columns_checkbox","Select Columns to Plot", choices = choices, selected = choices[1:3], inline = TRUE)
-  # }))
+  observeEvent(input$file1$datapath, num.datasets(num.datasets()+1))
   
   ### Graph editing 
-  observeEvent(num_datasets(), output$editable_network <- renderVisNetwork({
-    validate(
-      need(num_datasets()>0, FALSE)
+  observeEvent(num.datasets(), output$editable_network <- renderVisNetwork({
+    shiny::validate(
+      need(num.datasets()>0, FALSE)
     )
     withProgress(message = 'Updating Model', value = 0, {
       dataset <- DataSet$new(sim_state$dataset_rbinded)
@@ -29,16 +25,19 @@ server = function(input, output, session) {
       sim$learn_structure() ## TODO: use previous interactions
       })
       
-      sim_state$sim <<- sim
+      sim_state$sim <<- sim #TODO move to interface
     
-      graph_list <- sim$structure$to_list()
+      graph_list <- sim$structure$to_list() #TODO move to interface
       graph_data$nodes <- data.frame(id = graph_list$nodes, 
                                      label=graph_list$nodes)
+
       graph_data$edges <- graph_list$edges
+
       
       visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
-        visEdges(arrows = 'from') %>%
+        visEdges(arrows = 'to') %>%
         visOptions(manipulation = T)
+
      })
     )
 
@@ -57,9 +56,9 @@ server = function(input, output, session) {
   
   
   ## Selection in data tab
-  observeEvent(num_datasets(), output$dataplot_ui <- renderUI({
-     validate(
-      need(length(sim_state$dataset_list)>0, FALSE)
+  observeEvent(num.datasets(), output$dataplot_ui <- renderUI({
+     shiny::validate(
+      need(num.datasets()>0, FALSE)
     )
 
     cols=names(sim_state$dataset_rbinded)
@@ -78,9 +77,46 @@ server = function(input, output, session) {
   # Plot in data tab
   observeEvent(input$pairs_plot_button, 
                output$data_plot <-  renderPlotly(data_plot(input$x, input$y, 
-                                                                              input$sampleSize, input$color, 
-                                                                              input$facet_row, input$facet_col
-                                                                              )))
+                                                input$sampleSize, input$color, 
+                                                input$facet_row, input$facet_col
+   )))
+
+  
+  #Selection in simulate tab
+  observeEvent(input$simulate, output$dataplot_simulate <- renderUI({
+    
+    jsonlite::toJSON(list(nodes = graph_data$nodes$id, edges=graph_data$edges))
+    
+    #TODO move these lines to interface
+    sim_state$sim$structure_from_json_string(structure.json) 
+    sim_state$sim$learn_samplers()
+    
+    
+    input_vars <- setdiff(graph_data$edges$from, graph_data$edges$to)
+    output_vars <- setdiff(graph_data$edges$to, graph_data$edges$from)
+    
+    
+    print(sim_state$sim$structure_to_json_string())
+    
+    splitLayout(
+      selectInput('input_var', 'Input Variable', choices = input_vars, selected = input_vars[1]),
+      selectInput('output_var', 'Output Variable', choices = output_vars, selected = output_vars[1]),
+      width = 6)
+    
+    simulation.done(TRUE)
+    })
+  )
+  
+  # Plot in simulate tab
+  observeEvent(simulation.done(), 
+         output$simulation_plot <-  renderPlotly({
+           shiny::validate(
+             need(simulation.done() == TRUE, FALSE)
+           )
+           sim.df <- sim_state$sim$sample(input$n_sim_samples)
+           simulation_plot(sim.df, input$input_var, input$output_var)}
+        ))
+  
   outputOptions(output, "graph_updated", suspendWhenHidden = FALSE)
  
 }
