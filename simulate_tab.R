@@ -11,7 +11,7 @@ simulate_tab <- tabItem(
     ),
     width = 4
   ),
-  
+  fluidRow(uiOutput("simulate_ui")),
   fluidRow(plotlyOutput("simulation_plot")),
   
   br()

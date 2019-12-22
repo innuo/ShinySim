@@ -12,28 +12,15 @@ library(visNetwork)
 library(plotly)
 library(GGally)
 library(jsonlite)
-
-## NOT USED
-pairs_plot <- function(columns){
-  n <- length(columns)
-  data <- subset(sim_state$dataset_rbinded, select = columns)
-  if(nrow(data) > 500) data <- data[sample(1:nrow(data), 500),]
-  is.factor <- do.call(c, lapply(data, class)) == "factor"
-  group = if (any(is.factor)) data[,which(is.factor)[1]] else NULL
-  p <- pairsD3(data, group=group)
-  p
-}
+library(stringr)
+library(dglm)
+library(nnet)
 
 data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
   
-  print(x)
-  print(y)
-  print(num_samples)
-  print(color)
-  print(facet_row)
-  print(facet_col)
   
-  data <- sim_state$dataset_rbinded
+  dataset_ids <- sim_state$dataset$matching_dataset_ids(c(x, y))
+  data <- sim_state$dataset$dataset_from_ids(dataset_ids)
   data <- data[sample(1:nrow(data), num_samples),]
   
   # build graph with ggplot syntax
@@ -54,15 +41,21 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
 }
 
 
-simulation_plot <- function(sim.df, input.col, ouput_col){
-  print(input.col)
-  data <- subset(sim_state$dataset_rbinded, select=c(input.col, output.col))
-  data$Provenance <- "Raw Data"
-  data <- na.omit(data)
-  sim.df$Provenance <- "Simulated"
-  data <- rbind.data.frame(data, subset(sim.df, select =c(input.col, output.col, "Provenance")))
+simulation_plot <- function(num_samples, input.col, output.col){
+  sim.df <- sim_state$sim$sample(num_samples)
+
+  dataset_ids <- sim_state$dataset$matching_dataset_ids(c(input.col, output.col))
+  data <- sim_state$dataset$dataset_from_ids(dataset_ids)
   
-  p <- ggplot(data, aes_string(x = input.col, y = output.col, color = Provenance)) 
+  data <- subset(data, select=c(input.col, output.col))
+  data <- data[sample(1:nrow(data), num_samples),]
+  
+  data$Data_Source <- "Raw Data"
+  data <- na.omit(data)
+  sim.df$Data_Source <- "Simulated"
+  data <- rbind.data.frame(data, subset(sim.df, select =c(input.col, output.col, "Data_Source")))
+  
+  p <- ggplot(data, aes_string(x = input.col, y = output.col, color = "Data_Source")) 
   
   if(class(data[[input.col]]) == "factor")
     p <- p+geom_jitter(width=0.1)
