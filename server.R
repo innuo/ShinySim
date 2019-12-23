@@ -4,6 +4,11 @@ server = function(input, output, session) {
   
   num.datasets <- reactiveVal(0)
   simulation.done <- reactiveVal(FALSE)
+  graph_data <- reactiveValues(
+    nodes = NULL,
+    edges = NULL
+  )
+  
   
   output$num.datasets <- reactive(num.datasets())
 
@@ -12,16 +17,23 @@ server = function(input, output, session) {
   observeEvent(input$file1$datapath, num.datasets(num.datasets()+1))
   
   ### Graph editing 
-  observeEvent(num.datasets(), output$editable_network <- renderVisNetwork({
+  observeEvent(input$make_graph, {
     shiny::validate(
-      need(num.datasets()>0, FALSE)
+      need(!is.null(sim_state$dataset), FALSE)
     )
-      graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
-                                     label=sim_state$graph_list$nodes)
-
-      graph_data$edges <- sim_state$graph_list$edges
-
-      
+    graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
+                                   label=sim_state$graph_list$nodes)
+    edges <- sim_state$graph_list$edges
+    graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
+    
+    print(graph_data$edges)
+  })
+  
+  ###
+  observeEvent(input$make_graph, output$editable_network <- renderVisNetwork({
+    shiny::validate(
+      need(!is.null(graph_data$nodes), FALSE)
+    )
       visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
         visEdges(arrows = 'to') %>%
         visOptions(manipulation = T)
@@ -29,13 +41,7 @@ server = function(input, output, session) {
      })
     )
 
-    graph_data <- reactiveValues(
-                  nodes = NULL,
-                  edges = NULL
-                  )
-    
     output$graph_updated <- reactive(!is.null(graph_data$nodes))
-    
   
   #on switch tab
   #observeEvent(input$switchtab, {
@@ -46,7 +52,7 @@ server = function(input, output, session) {
   ## Selection in data tab
   observeEvent(num.datasets(), output$dataplot_ui <- renderUI({
      shiny::validate(
-      need(num.datasets()>0, FALSE)
+       need(!is.null(sim_state$dataset), FALSE)
     )
 
     cols=names(sim_state$dataset$col.names.to.model()) #TODO move to interface
@@ -73,7 +79,11 @@ server = function(input, output, session) {
   #Selection in simulate tab
   observeEvent(input$simulate, output$simulate_ui <- renderUI({
     
-    structure.json <- jsonlite::toJSON(list(nodes = graph_data$nodes$id, edges=graph_data$edges))
+    print(graph_data$nodes)
+    print(graph_data$edges)
+    
+    structure.json <- jsonlite::toJSON(list(nodes = graph_data$nodes$id, 
+                                            edges=subset(graph_data$edges, select=c(from, to))))
     
    
     #TODO move these lines to interface
@@ -89,17 +99,19 @@ server = function(input, output, session) {
     
     
     print(sim_state$sim$structure_to_json_string())
-    simulation.done(TRUE)
+    
     splitLayout(
       selectInput('plot_input_var', 'Input Variable', choices = input_vars, selected = input_vars[1]),
       selectInput('plot_output_var', 'Output Variable', choices = output_vars, selected = output_vars[1]),
+      actionButton(inputId='plot_simulated_data', label="Plot"),
       width = 6)
 
+    
     })
   )
   
   # Plot in simulate tab
-  observeEvent(simulation.done(),  
+  observeEvent(input$plot_simulated_data,  
             output$simulation_plot <-  renderPlotly({
               shiny::validate(
                 need(simulation.done() == TRUE, FALSE)
@@ -107,6 +119,61 @@ server = function(input, output, session) {
               print(input)
               simulation_plot(input$n_sim_samples, input$plot_input_var, input$plot_output_var)
         }))
+  
+  ##### VISNETWORK
+  observeEvent(input$editable_network_graphChange, {
+    # If the user added a node, add it to the data frame of nodes.
+    if(input$editable_network_graphChange$cmd == "addNode") {
+      temp = bind_rows(
+        graph_data$nodes,
+        data.frame(id = input$editable_network_graphChange$id,
+                   label = input$editable_network_graphChange$label,
+                   stringsAsFactors = F)
+      )
+      graph_data$nodes = temp
+    }
+    # If the user added an edge, add it to the data frame of edges.
+    else if(input$editable_network_graphChange$cmd == "addEdge") {
+      from = input$editable_network_graphChange$from
+      to = input$editable_network_graphChange$to
+      temp = bind_rows(
+        graph_data$edges,
+        data.frame(id = random_string(1), #input$editable_network_graphChange$id,
+                   from = from,
+                   to = to,
+                   stringsAsFactors = F)
+      )
+      graph_data$edges = temp
+    }
+    # If the user edited a node, update that record.
+    else if(input$editable_network_graphChange$cmd == "editNode") {
+      temp = graph_data$nodes
+      temp$label[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$label
+      graph_data$nodes = temp
+    }
+    # If the user edited an edge, update that record.
+    else if(input$editable_network_graphChange$cmd == "editEdge") {
+      temp = graph_data$edges
+      temp$from[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$from
+      temp$to[temp$id == input$editable_network_graphChange$id] = input$editable_network_graphChange$to
+      graph_data$edges = temp
+    }
+    # If the user deleted something, remove those records.
+    else if(input$editable_network_graphChange$cmd == "deleteElements") {
+      for(node.id in input$editable_network_graphChange$nodes) {
+        temp = graph_data$nodes
+        temp = temp[temp$id != node.id,]
+        graph_data$nodes = temp
+      }
+      for(edge.id in input$editable_network_graphChange$edges) {
+        print(">>>>>>>>>")
+        print (edge.id)
+        temp = graph_data$edges
+        temp = temp[temp$id != edge.id,]
+        graph_data$edges = temp
+      }
+    }
+  })
   
   outputOptions(output, "graph_updated", suspendWhenHidden = FALSE)
  
