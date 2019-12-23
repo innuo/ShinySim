@@ -38,7 +38,7 @@ attach_data <- function(path, header, missing, name){
   sim_state$sim <<- sim 
   sim_state$graph_list <<- sim$structure$to_list() 
   
-  print(sim_state$graph_list)
+  #print(sim_state$graph_list)
 }
 
 

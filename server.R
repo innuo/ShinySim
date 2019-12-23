@@ -56,7 +56,9 @@ server = function(input, output, session) {
     )
 
     cols=names(sim_state$dataset$col.names.to.model()) #TODO move to interface
-
+    print("xxxxxxxxx")
+    print(cols)
+    
     splitLayout(
     sliderInput('sampleSize', 'Sample Size', min = 100, max = 500,
                 value = 200, step = 20, round = 0),
@@ -91,11 +93,8 @@ server = function(input, output, session) {
     sim_state$sim$learn_samplers()
     print("Done learning")
     
-    input_vars <- setdiff(graph_data$edges$from, graph_data$edges$to)
-    output_vars <- setdiff(graph_data$edges$to, graph_data$edges$from)
-    
-    print(input_vars)
-    print(output_vars)
+    input_vars <- setdiff(graph_data$nodes$id, graph_data$edges$to)
+    output_vars <- setdiff(graph_data$nodes$id, graph_data$edges$from)
     
     
     print(sim_state$sim$structure_to_json_string())
@@ -106,16 +105,15 @@ server = function(input, output, session) {
       actionButton(inputId='plot_simulated_data', label="Plot"),
       width = 6)
 
-    
     })
   )
   
   # Plot in simulate tab
   observeEvent(input$plot_simulated_data,  
             output$simulation_plot <-  renderPlotly({
-              shiny::validate(
-                need(simulation.done() == TRUE, FALSE)
-              )
+              # shiny::validate(
+              #   need(simulation.done() == TRUE, FALSE)
+              # )
               print(input)
               simulation_plot(input$n_sim_samples, input$plot_input_var, input$plot_output_var)
         }))
