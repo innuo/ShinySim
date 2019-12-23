@@ -34,6 +34,7 @@ attach_data <- function(path, header, missing, name){
 
 
 learn_models <- function(structure.json){
+  print(structure.json)
   withProgress(message = 'Learning Model', value = 0, {
     incProgress(1/2, detail = paste("(conditional samplers)"))
     sim_state$sim$structure_from_json_string(structure.json) 

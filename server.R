@@ -34,7 +34,6 @@ server = function(input, output, session) {
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     
     new.graph(new.graph()+1)
-    print(graph_data$edges)
   })
   
   ###
@@ -65,9 +64,7 @@ server = function(input, output, session) {
     )
 
     cols <- sim_state$dataset$col.names.to.model() #TODO move to interface
-    print("xxxxxxxxx")
-    print(cols)
-    
+
     splitLayout(
     selectInput('x', 'X', choices = cols, selected = cols[1]),
     selectInput('y', 'Y', choices = cols, selected = cols[2]),
@@ -87,10 +84,8 @@ server = function(input, output, session) {
   
   #Selection in simulate tab
   observeEvent(input$simulate, output$simulate_ui <- renderUI({
-    
-    print(graph_data$nodes)
-    print(graph_data$edges)
-    
+
+    isolate({
     structure.json <- jsonlite::toJSON(list(nodes = graph_data$nodes$id, 
                                             edges=subset(graph_data$edges, select=c(from, to))))
     
@@ -99,21 +94,22 @@ server = function(input, output, session) {
     
     #input_vars <- setdiff(graph_data$nodes$id, graph_data$edges$to)
     #output_vars <- setdiff(graph_data$nodes$id, graph_data$edges$from)
-    input_vars <- graph_data$nodes$id
-    output_vars <- graph_data$nodes$id
+    input_vars <- sim_state$dataset$col.names.to.model() #TODO move to interface
+    output_vars <- sim_state$dataset$col.names.to.model() #TODO move to interface
+    #names(input_vars) <- input_vars
     
-    
-    print(sim_state$sim$structure_to_json_string())
+    selected_input_var <- ifelse(is.null(input$sim_plot_input_var), input_vars[1], input$sim_plot_input_var)
+    selected_output_var <- ifelse(is.null(input$sim_plot_input_var), output_vars[1], input$sim_plot_output_var)
     
     splitLayout(
-      selectInput('sim_plot_input_var', 'X', choices = input_vars, selected = input_vars[1]),
-      selectInput('sim_plot_output_var', 'Y', choices = output_vars, selected = output_vars[1]),
+      selectInput('sim_plot_input_var', 'X', choices = input_vars, selected = selected_input_var),
+      selectInput('sim_plot_output_var', 'Y', choices = output_vars, selected = selected_output_var),
       selectInput('sim_plot_facet_row', 'Facet Row', c(None = '.', input_vars)),
       selectInput('sim_plot_facet_col', 'Facet Column', c(None = '.', input_vars)),
       actionButton(inputId='plot_simulated_data', label="Plot"),
       width = 6)
 
-    })
+    }) })
   )
   
   # Plot in simulate tab
@@ -122,7 +118,6 @@ server = function(input, output, session) {
               # shiny::validate(
               #   need(simulation.done() == TRUE, FALSE)
               # )
-              print(input)
               simulation_plot(input$n_sim_samples, 
                               input$sim_plot_input_var, input$sim_plot_output_var,
                               input$sim_plot_facet_row, input$sim_plot_facet_col
@@ -175,8 +170,6 @@ server = function(input, output, session) {
         graph_data$nodes = temp
       }
       for(edge.id in input$editable_network_graphChange$edges) {
-        print(">>>>>>>>>")
-        print (edge.id)
         temp = graph_data$edges
         temp = temp[temp$id != edge.id,]
         graph_data$edges = temp

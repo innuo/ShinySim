@@ -63,6 +63,7 @@ simulation_plot <- function(num_samples, input.col, output.col,
   
   # if at least one facet column/row is specified, add it
   facets <- paste(facet.row, '~', facet.col)
+  print (facets)
   if (facets != '. ~ .') p <- p + facet_grid(facets)
   
   sim_state$sim.df <<- sim.df
