@@ -1,8 +1,8 @@
 simulate_tab <- tabItem(
   tabName = "sim",
   
-  br(),br(),br(),
-  actionButton(inputId ="make_graph", label="Guess Graph"),
+  br(),
+  #actionButton(inputId ="make_graph", label="Guess Graph"),
  
   br(),
   visNetworkOutput('editable_network'),

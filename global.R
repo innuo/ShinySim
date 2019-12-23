@@ -38,7 +38,8 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
 }
 
 
-simulation_plot <- function(num_samples, input.col, output.col){
+simulation_plot <- function(num_samples, input.col, output.col,
+                            facet.row, facet.col){
   sim.df <- sim_state$sim$sample(num_samples)
 
   dataset_ids <- sim_state$dataset$matching_dataset_ids(c(input.col, output.col))
@@ -59,6 +60,12 @@ simulation_plot <- function(num_samples, input.col, output.col){
     p <- p+geom_jitter(width=0.1)
   else
     p <- p+geom_point() 
+  
+  # if at least one facet column/row is specified, add it
+  facets <- paste(facet.row, '~', facet.col)
+  if (facets != '. ~ .') p <- p + facet_grid(facets)
+  
+  sim_state$sim.df <<- sim.df
   
   ggplotly(p)
   

@@ -4,6 +4,8 @@ server = function(input, output, session) {
   
   num.datasets <- reactiveVal(0)
   simulation.done <- reactiveVal(FALSE)
+  new.graph <- reactiveVal(0)
+
   graph_data <- reactiveValues(
     nodes = NULL,
     edges = NULL
@@ -12,29 +14,36 @@ server = function(input, output, session) {
   
   output$num.datasets <- reactive(num.datasets())
 
-  observeEvent(input$file1$datapath, 
-               attach_data(input$file1$datapath, input$header, input$missing, input$file1$name))
-  observeEvent(input$file1$datapath, num.datasets(num.datasets()+1))
+  observeEvent(input$file1$datapath, {
+           attach_data(input$file1$datapath, 
+                    input$header, input$missing, input$file1$name)
+           num.datasets(num.datasets()+1)
+                 
+   })
   
   ### Graph editing 
-  observeEvent(input$make_graph, {
+  observeEvent(input$file1$datapath, {
     shiny::validate(
-      need(!is.null(sim_state$dataset), FALSE)
+      need(num.datasets()>0, FALSE)
     )
+    guess_causal_graph()
+    
     graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
                                    label=sim_state$graph_list$nodes)
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     
+    new.graph(new.graph()+1)
     print(graph_data$edges)
   })
   
   ###
-  observeEvent(input$make_graph, output$editable_network <- renderVisNetwork({
+  observeEvent(new.graph(), output$editable_network <- renderVisNetwork({
     shiny::validate(
-      need(!is.null(graph_data$nodes), FALSE)
+      need(new.graph()>0, FALSE)
     )
-      visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
+    
+    visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
         visEdges(arrows = 'to') %>%
         visOptions(manipulation = T)
 
@@ -52,16 +61,14 @@ server = function(input, output, session) {
   ## Selection in data tab
   observeEvent(num.datasets(), output$dataplot_ui <- renderUI({
      shiny::validate(
-       need(!is.null(sim_state$dataset), FALSE)
+       need(num.datasets()>0, FALSE)
     )
 
-    cols=names(sim_state$dataset$col.names.to.model()) #TODO move to interface
+    cols <- sim_state$dataset$col.names.to.model() #TODO move to interface
     print("xxxxxxxxx")
     print(cols)
     
     splitLayout(
-    sliderInput('sampleSize', 'Sample Size', min = 100, max = 500,
-                value = 200, step = 20, round = 0),
     selectInput('x', 'X', choices = cols, selected = cols[1]),
     selectInput('y', 'Y', choices = cols, selected = cols[2]),
     selectInput('color', 'Color', choices = cols),
@@ -73,7 +80,7 @@ server = function(input, output, session) {
   # Plot in data tab
   observeEvent(input$pairs_plot_button, 
                output$data_plot <-  renderPlotly(data_plot(input$x, input$y, 
-                                                input$sampleSize, input$color, 
+                                                input$data_plot_sample_size, input$color, 
                                                 input$facet_row, input$facet_col )
   ))
 
@@ -88,20 +95,21 @@ server = function(input, output, session) {
                                             edges=subset(graph_data$edges, select=c(from, to))))
     
    
-    #TODO move these lines to interface
-    sim_state$sim$structure_from_json_string(structure.json) 
-    sim_state$sim$learn_samplers()
-    print("Done learning")
+    learn_models(structure.json)
     
-    input_vars <- setdiff(graph_data$nodes$id, graph_data$edges$to)
-    output_vars <- setdiff(graph_data$nodes$id, graph_data$edges$from)
+    #input_vars <- setdiff(graph_data$nodes$id, graph_data$edges$to)
+    #output_vars <- setdiff(graph_data$nodes$id, graph_data$edges$from)
+    input_vars <- graph_data$nodes$id
+    output_vars <- graph_data$nodes$id
     
     
     print(sim_state$sim$structure_to_json_string())
     
     splitLayout(
-      selectInput('plot_input_var', 'Input Variable', choices = input_vars, selected = input_vars[1]),
-      selectInput('plot_output_var', 'Output Variable', choices = output_vars, selected = output_vars[1]),
+      selectInput('sim_plot_input_var', 'X', choices = input_vars, selected = input_vars[1]),
+      selectInput('sim_plot_output_var', 'Y', choices = output_vars, selected = output_vars[1]),
+      selectInput('sim_plot_facet_row', 'Facet Row', c(None = '.', input_vars)),
+      selectInput('sim_plot_facet_col', 'Facet Column', c(None = '.', input_vars)),
       actionButton(inputId='plot_simulated_data', label="Plot"),
       width = 6)
 
@@ -115,7 +123,10 @@ server = function(input, output, session) {
               #   need(simulation.done() == TRUE, FALSE)
               # )
               print(input)
-              simulation_plot(input$n_sim_samples, input$plot_input_var, input$plot_output_var)
+              simulation_plot(input$n_sim_samples, 
+                              input$sim_plot_input_var, input$sim_plot_output_var,
+                              input$sim_plot_facet_row, input$sim_plot_facet_col
+                              )
         }))
   
   ##### VISNETWORK
