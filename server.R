@@ -5,6 +5,7 @@ server = function(input, output, session) {
   num.datasets <- reactiveVal(0)
   simulation.done <- reactiveVal(FALSE)
   new.graph <- reactiveVal(0)
+  graph.updated <- reactiveVal('none')
 
   graph_data <- reactiveValues(
     nodes = NULL,
@@ -33,23 +34,21 @@ server = function(input, output, session) {
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     
-    new.graph(new.graph()+1)
+    graph.updated('yes')
   })
   
   ###
-  observeEvent(new.graph(), output$editable_network <- renderVisNetwork({
+  observeEvent(graph.updated(), output$editable_network <- renderVisNetwork({
     shiny::validate(
-      need(new.graph()>0, FALSE)
+      need(graph.updated() != 'none', FALSE)
     )
     
     visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
         visEdges(arrows = 'to') %>%
-        visOptions(manipulation = T)
+        visOptions(manipulation = list(enabled = TRUE, addNode = FALSE))
 
      })
     )
-
-    output$graph_updated <- reactive(!is.null(graph_data$nodes))
   
   #on switch tab
   #observeEvent(input$switchtab, {
@@ -68,7 +67,7 @@ server = function(input, output, session) {
     splitLayout(
     selectInput('x', 'X', choices = cols, selected = cols[1]),
     selectInput('y', 'Y', choices = cols, selected = cols[2]),
-    selectInput('color', 'Color', choices = cols),
+    selectInput('color', 'Color', choices = cols, selected = cols[2]),
     
     selectInput('facet_row', 'Facet Row', c(None = '.', cols)),
     selectInput('facet_col', 'Facet Column', c(None = '.', cols)),
@@ -81,16 +80,22 @@ server = function(input, output, session) {
                                                 input$facet_row, input$facet_col )
   ))
 
+  observeEvent(input$simulate, {
+    isolate({
+      structure.json <- jsonlite::toJSON(list(nodes = graph_data$nodes$id, 
+                                              edges=subset(graph_data$edges, select=c(from, to))))
+      
+      
+      learn_models(structure.json)
+      graph.updated('no')
+    })
+  })
   
   #Selection in simulate tab
   observeEvent(input$simulate, output$simulate_ui <- renderUI({
-
-    isolate({
-    structure.json <- jsonlite::toJSON(list(nodes = graph_data$nodes$id, 
-                                            edges=subset(graph_data$edges, select=c(from, to))))
-    
-   
-    learn_models(structure.json)
+    shiny::validate(
+      need(graph.updated() == 'no', FALSE)
+    )
     
     #input_vars <- setdiff(graph_data$nodes$id, graph_data$edges$to)
     #output_vars <- setdiff(graph_data$nodes$id, graph_data$edges$from)
@@ -108,16 +113,13 @@ server = function(input, output, session) {
       selectInput('sim_plot_facet_col', 'Facet Column', c(None = '.', input_vars)),
       actionButton(inputId='plot_simulated_data', label="Plot"),
       width = 6)
-
-    }) })
+     })
   )
   
   # Plot in simulate tab
   observeEvent(input$plot_simulated_data,  
             output$simulation_plot <-  renderPlotly({
-              # shiny::validate(
-              #   need(simulation.done() == TRUE, FALSE)
-              # )
+              
               simulation_plot(input$n_sim_samples, 
                               input$sim_plot_input_var, input$sim_plot_output_var,
                               input$sim_plot_facet_row, input$sim_plot_facet_col
@@ -126,6 +128,7 @@ server = function(input, output, session) {
   
   ##### VISNETWORK
   observeEvent(input$editable_network_graphChange, {
+    graph.updated('yes')
     # If the user added a node, add it to the data frame of nodes.
     if(input$editable_network_graphChange$cmd == "addNode") {
       temp = bind_rows(
@@ -177,6 +180,10 @@ server = function(input, output, session) {
     }
   })
   
-  outputOptions(output, "graph_updated", suspendWhenHidden = FALSE)
+  output$graph_updated <- renderText({
+    graph.updated()
+  })
+  
+  outputOptions(output, "graph_updated", suspendWhenHidden=FALSE)
  
 }

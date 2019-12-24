@@ -27,14 +27,10 @@ attach_data <- function(path, header, missing, name){
     }
   }
   )
-  print(sim_state$dataset)
-  
-  #print(sim_state$graph_list)
 }
 
 
 learn_models <- function(structure.json){
-  print(structure.json)
   withProgress(message = 'Learning Model', value = 0, {
     incProgress(1/2, detail = paste("(conditional samplers)"))
     sim_state$sim$structure_from_json_string(structure.json) 
@@ -46,7 +42,6 @@ learn_models <- function(structure.json){
 
 guess_causal_graph <- function(){
   sim <- CausalSimModel$new(sim_state$dataset)
-  print(head(sim$dataset$data))
   sim$learn_structure() 
   sim_state$sim <<- sim 
   sim_state$graph_list <<- sim$structure$to_list() 

@@ -16,10 +16,30 @@ library(stringr)
 library(dglm)
 library(nnet)
 
-data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
+
+get_dataset_from_cols <- function(cols){
+  cols <- cols[cols != "."]
+  dataset_ids <- sim_state$dataset$matching_dataset_ids(cols)
   
-  dataset_ids <- sim_state$dataset$matching_dataset_ids(c(x, y))
-  data <- sim_state$dataset$dataset_from_ids(dataset_ids)
+  if(length(dataset_ids) > 0){
+    title <- paste(names(sim_state$dataset_list)[dataset_ids], sep=",")
+    data <- sim_state$dataset$dataset_from_ids(dataset_ids)
+  }
+  else{
+    title <- paste("No raw datasets with these columns")
+    data <- data.frame(numeric(0), numeric(0), numeric(0), numeric(0), numeric(0))
+    names(data) <- cols
+  }
+  
+  return(list(data, title))
+  
+}
+
+data_plot <- function(x, y, num_samples, color, facet.row, facet.col){
+  
+  ret <- get_dataset_from_cols(c(x, y, color, facet.row, facet.col))
+  data <- ret[[1]]
+  title <- ret[[2]]
   data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),]
   
   # build graph with ggplot syntax
@@ -31,8 +51,10 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
     p <- p+geom_point() 
   
   # if at least one facet column/row is specified, add it
-  facets <- paste(facet_row, '~', facet_col)
+  facets <- paste(facet.row, '~', facet.col)
   if (facets != '. ~ .') p <- p + facet_grid(facets)
+  
+  p <- p+ggtitle(title)
   
   ggplotly(p) 
 }
@@ -40,19 +62,24 @@ data_plot <- function(x, y, num_samples, color, facet_row, facet_col){
 
 simulation_plot <- function(num_samples, input.col, output.col,
                             facet.row, facet.col){
-  sim.df <- sim_state$sim$sample(num_samples)
 
-  dataset_ids <- sim_state$dataset$matching_dataset_ids(c(input.col, output.col))
-  data <- sim_state$dataset$dataset_from_ids(dataset_ids)
-  
-  data <- subset(data, select=c(input.col, output.col))
-  data <- na.omit(data)
-  data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),]
-  
-  data$Data_Source <- "Raw Data"
+  print("In simdf")
+  sim.df <- sim_state$sim$sample(num_samples)
   sim.df$Data_Source <- "Simulated"
+  print("Got simulated simdf")
+
+  ret <- get_dataset_from_cols(c(input.col, output.col, facet.row, facet.col))
+  data <- ret[[1]]
+  title <- ret[[2]]
   
-  data <- rbind.data.frame(data, subset(sim.df, select =c(input.col, output.col, "Data_Source")))
+  if(nrow(data) > 0) {
+    data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),]
+    data$Data_Source <- "Raw Data"
+    data <- plyr::rbind.fill(data, sim.df)
+  }
+  else{
+    data <- sim.df
+  }
   
   p <- ggplot(data, aes_string(x = input.col, y = output.col, color = "Data_Source")) 
   
@@ -63,8 +90,9 @@ simulation_plot <- function(num_samples, input.col, output.col,
   
   # if at least one facet column/row is specified, add it
   facets <- paste(facet.row, '~', facet.col)
-  print (facets)
   if (facets != '. ~ .') p <- p + facet_grid(facets)
+  
+  p <- p + ggtitle(title)
   
   sim_state$sim.df <<- sim.df
   

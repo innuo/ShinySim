@@ -9,14 +9,18 @@ simulate_tab <- tabItem(
 
 
   splitLayout(
+    #textOutput("graph_updated"),
     conditionalPanel(
-      condition = "output.graph_updated == true",
+      condition = "output.graph_updated == 'yes'",
       actionButton(inputId ="simulate", label="Learn & Simulate")
     ),
     width = 4
   ),
-  fluidRow(uiOutput("simulate_ui")),
-  fluidRow(plotlyOutput("simulation_plot")),
-  
+  conditionalPanel(
+    condition = "output.graph_updated == 'no'",
+    fluidRow(uiOutput("simulate_ui")),
+    fluidRow(plotlyOutput("simulation_plot"))
+  ),
+
   br()
 )
