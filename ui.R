@@ -31,7 +31,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  inputId = "plotting_library",
                                  label = "Plotting Library", 
                                  thick = TRUE,
-                                 choices = c("Plotly", "Bojkeh"),
+                                 choices = c("Plotly", "Bokeh"),
                                  animation = "smooth"
                                )
                              ),

@@ -36,11 +36,14 @@ server = function(input, output, session) {
     )
     guess_causal_graph()
     
+    print(graph_data)
+    
     graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
                                    label=sim_state$graph_list$nodes)
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     
+    print(graph_data)
     graph.updated('yes')
   })
   

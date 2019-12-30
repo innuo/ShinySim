@@ -22,8 +22,11 @@ get_dataset_from_cols <- function(cols){
   dataset_ids <- sim_state$dataset$matching_dataset_ids(cols, impose.minimum.size=FALSE)
   
   if(length(dataset_ids) > 0){
-    title <- paste(names(sim_state$dataset_list)[dataset_ids], sep=",")
-    data <- sim_state$dataset$dataset_from_ids(dataset_ids)
+    title <- paste(names(sim_state$dataset_list)[dataset_ids], collapse=", ")
+    data <- sim_state$dataset$dataset_from_vars(cols, impose.minimum.size=FALSE)
+    print(data)
+    print(names(sim_state$dataset_list))
+    print(dataset_ids)
   }
   else{
     title <- paste("No raw datasets with these columns")
@@ -31,9 +34,9 @@ get_dataset_from_cols <- function(cols){
     names(data) <- cols
   }
   
-  #print(data)
+  print(summary(data))
   data <- na.omit(data[, cols, drop=FALSE])
-  #print(data)
+  print(title)
   return(list(data, title))
   
 }
@@ -78,7 +81,7 @@ simulation_plot <- function(num_samples, input.col, output.col,
   if(nrow(data) > 0) {
     data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),, drop=FALSE]
     data$Data_Source <- "Raw Data"
-    data <- dplyr::bind_rows(data, sim.df)
+    data <- CausalSimR:::factor_safe_bind_rows(data, sim.df)
     #print(head(data, 10))
   }
   else{
