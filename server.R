@@ -2,6 +2,13 @@ source("global.R")
 
 server = function(input, output, session) {
   
+  sim_state <<- list(dataset_list = list(),
+                    dataset = NULL,
+                    graph_list= NULL,
+                    sim_df = NULL,
+                    sim = NULL,
+                    ready = FALSE)
+  
   num.datasets <- reactiveVal(0)
   simulation.done <- reactiveVal(FALSE)
   new.graph <- reactiveVal(0)
