@@ -1,4 +1,4 @@
-library(plyr)
+library(dplyr)
 library(shiny)
 library(shinyjqui)
 library(shinydashboard)
@@ -18,8 +18,8 @@ library(nnet)
 
 
 get_dataset_from_cols <- function(cols){
-  cols <- cols[cols != "."]
-  dataset_ids <- sim_state$dataset$matching_dataset_ids(cols)
+  cols <- unique(cols[cols != "."])
+  dataset_ids <- sim_state$dataset$matching_dataset_ids(cols, impose.minimum.size=FALSE)
   
   if(length(dataset_ids) > 0){
     title <- paste(names(sim_state$dataset_list)[dataset_ids], sep=",")
@@ -27,10 +27,13 @@ get_dataset_from_cols <- function(cols){
   }
   else{
     title <- paste("No raw datasets with these columns")
-    data <- data.frame(numeric(0), numeric(0), numeric(0), numeric(0), numeric(0))
+    data <- data.frame(matrix(NA, nrow=0, ncol=length(cols)))
     names(data) <- cols
   }
   
+  #print(data)
+  data <- na.omit(data[, cols, drop=FALSE])
+  #print(data)
   return(list(data, title))
   
 }
@@ -40,7 +43,7 @@ data_plot <- function(x, y, num_samples, color, facet.row, facet.col){
   ret <- get_dataset_from_cols(c(x, y, color, facet.row, facet.col))
   data <- ret[[1]]
   title <- ret[[2]]
-  data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),]
+  data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),, drop=F]
   
   # build graph with ggplot syntax
   p <- ggplot(data, aes_string(x = x, y = y, color = color)) 
@@ -73,9 +76,10 @@ simulation_plot <- function(num_samples, input.col, output.col,
   title <- ret[[2]]
   
   if(nrow(data) > 0) {
-    data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),]
+    data <- data[sample(1:nrow(data), min(num_samples, nrow(data))),, drop=FALSE]
     data$Data_Source <- "Raw Data"
-    data <- plyr::rbind.fill(data, sim.df)
+    data <- dplyr::bind_rows(data, sim.df)
+    #print(head(data, 10))
   }
   else{
     data <- sim.df
