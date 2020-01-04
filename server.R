@@ -21,11 +21,25 @@ server = function(input, output, session) {
   
   
   output$num.datasets <- reactive(num.datasets())
+  
+  
+  observeEvent(input$model_file$datapath,{
+    sim_state <<- readRDS(input$model_file$datapath)
+    update_causal_graph()
+    num.datasets(length(sim_state$dataset_list))
+    graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
+                                   label=sim_state$graph_list$nodes)
+    edges <- sim_state$graph_list$edges
+    graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
+    graph.updated('yes')
+    
+  })
 
   observeEvent(input$file1$datapath, {
            attach_data(input$file1$datapath, 
                     input$header, input$missing, input$file1$name)
            num.datasets(num.datasets()+1)
+           graph.updated('yes')
                  
    })
   
@@ -36,14 +50,11 @@ server = function(input, output, session) {
     )
     guess_causal_graph()
     
-    print(graph_data)
-    
     graph_data$nodes <- data.frame(id = sim_state$graph_list$nodes, 
                                    label=sim_state$graph_list$nodes)
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     
-    print(graph_data)
     graph.updated('yes')
   })
   
@@ -54,8 +65,10 @@ server = function(input, output, session) {
     )
     
     visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
+      visHierarchicalLayout(direction = "LR", nodeSpacing=200, sortMethod="directed") %>%
         visEdges(arrows = 'to') %>%
-        visOptions(manipulation = list(enabled = TRUE, addNode = FALSE))
+        visOptions(manipulation = list(enabled = TRUE, addNode = FALSE,
+                                       deleteNode = FALSE, multiple=TRUE))
 
      })
     )
@@ -122,6 +135,7 @@ server = function(input, output, session) {
       selectInput('sim_plot_facet_row', 'Facet Row', c(None = '.', input_vars)),
       selectInput('sim_plot_facet_col', 'Facet Column', c(None = '.', input_vars)),
       actionButton(inputId='plot_simulated_data', label="Plot"),
+      downloadButton(outputId='save_model', label="Save Model"),
       width = 6)
      })
   )
@@ -135,6 +149,16 @@ server = function(input, output, session) {
                               input$sim_plot_facet_row, input$sim_plot_facet_col
                               )
         }))
+  
+  # download model in simulate tab
+  output$save_model <-  downloadHandler(
+         filename = function() {
+           "my_model_with_data.RDS"
+         },
+         content = function(file) {
+           saveRDS(sim_state, file)
+         }
+    )
   
   ##### VISNETWORK
   observeEvent(input$editable_network_graphChange, {

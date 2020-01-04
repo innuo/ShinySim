@@ -16,6 +16,8 @@ attach_data <- function(path, header, missing, name){
   
   dataset_name <- tail(unlist(strsplit(name, "[/]|[\\\\]")), 1)
   sim_state$dataset_list[[dataset_name]] <<- df
+  print("In attach")
+  print(names(sim_state$dataset_list))
   
   withProgress(message = 'Attaching Data', value = 0, {
     incProgress(1/2, detail = paste("(Rbind and Fill)"))
@@ -44,7 +46,11 @@ guess_causal_graph <- function(){
   sim <- CausalSimModel$new(sim_state$dataset)
   sim$learn_structure() 
   sim_state$sim <<- sim 
-  sim_state$graph_list <<- sim$structure$to_list() 
+  supdate_causal_graph() 
+}
+
+update_causal_graph<- function(){
+  sim_state$graph_list <<- sim_state$sim$structure$to_list()
 }
 
 sample_from_simulator <- function(){

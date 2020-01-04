@@ -19,21 +19,16 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                  label = "Number of observations",
                                  min = 50, 
                                  max = 1000, 
-                                 value = 100
+                                 value = 200
                                )
                              ),
                              dropdownBlock(
-                               id = "select_plotting",
-                               title = "Plotting",
-                               icon = "chart-bar",
+                               id = "load_model",
+                               title = "Load Saved Model",
+                               icon = "monument",
                                badgeStatus = "warning",
-                               prettyRadioButtons(
-                                 inputId = "plotting_library",
-                                 label = "Plotting Library", 
-                                 thick = TRUE,
-                                 choices = c("Plotly", "Bokeh"),
-                                 animation = "smooth"
-                               )
+                               fileInput("model_file", "Choose RDS File",
+                                         multiple = FALSE)
                              ),
                              dropdownBlock(
                                id = "upload_file",
