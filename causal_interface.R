@@ -46,7 +46,7 @@ guess_causal_graph <- function(){
   sim <- CausalSimModel$new(sim_state$dataset)
   sim$learn_structure() 
   sim_state$sim <<- sim 
-  supdate_causal_graph() 
+  update_causal_graph() 
 }
 
 update_causal_graph<- function(){
