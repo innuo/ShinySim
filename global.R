@@ -107,6 +107,34 @@ simulation_plot <- function(num_samples, input.col, output.col,
   
 }
 
+ab_test_plot <- function(num_samples, 
+                         ab_input_var, ab_output_var,
+                         a_val, b_val){
+  
+  do_a <- list()
+  do_a[[ab_input_var]]=a_val
+  sim.df.a <- sim_state$sim$sample(num_samples, do = do_a)
+  sim.df.a$Group <- "A"
+  
+  do_b <- list()
+  do_b[[ab_input_var]]=b_val
+  sim.df.b <- sim_state$sim$sample(num_samples, do = do_b)
+  sim.df.b$Group <- "B"
+ 
+  df <- rbind.data.frame(sim.df.a, sim.df.b)
+  p <- ggplot(df, aes_string(x = ab_output_var, fill="Group", color = "Group")) 
+  
+  if(any(is.na(df[[ab_output_var]])))
+    p <- p + geom_blank()
+  else if(col.info(ab_output_var)[[1]] == 'factor')
+    p <- p + geom_bar()
+  else
+    p <- p + geom_density(alpha = 0.5)
+  
+  ggplotly(p)
+  
+}
+
 random_string <- function(n) {
   a <- do.call(paste0, replicate(5, sample(LETTERS, n, TRUE), FALSE))
   ret <- paste0(a, sprintf("%04d", sample(9999, n, TRUE)), sample(LETTERS, n, TRUE))
@@ -116,5 +144,6 @@ random_string <- function(n) {
 # tabs
 source("simulate_tab.R")
 source("query_tab.R")
+source("cf_tab.R")
 source("data_tab.R")
 source("causal_interface.R")

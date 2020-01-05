@@ -74,16 +74,29 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                              menuItem(
                                text = "Causal Simulate", 
                                tabName = "sim",
+                               badgeLabel = "(Rung 1)", 
+                               badgeColor = "black",
                                icon = icon("dice-two")
                              ),
                            menuItem(
                              text = "Causal Query", 
                              tabName = "query",
+                             badgeLabel = "(Rung 2)", 
+                             badgeColor = "black",
                              icon = icon("question")
+                           ),
+                           menuItem(
+                             text = "Counterfactual", 
+                             tabName = "cf",
+                             badgeLabel = "(Rung 3)", 
+                             badgeColor = "black",
+                             icon = icon("history")
                            ),
                            menuItem(
                              text = "View Data", 
                              tabName = "data",
+                             badgeLabel = "", 
+                             badgeColor = "black",
                              icon = icon("database")
                            )
                           )
@@ -142,6 +155,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                            tabItems(
                               simulate_tab,
                               query_tab,
+                              cf_tab,
                               data_tab
                            )
                          ),

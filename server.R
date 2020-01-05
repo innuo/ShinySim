@@ -10,6 +10,7 @@ server = function(input, output, session) {
                     ready = FALSE)
   
   num.datasets <- reactiveVal(0)
+  learning.done <- reactiveVal('none')
   simulation.done <- reactiveVal(FALSE)
   new.graph <- reactiveVal(0)
   graph.updated <- reactiveVal('none')
@@ -32,6 +33,7 @@ server = function(input, output, session) {
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     graph.updated('yes')
+    learning.done('yes')
     
   })
 
@@ -68,7 +70,7 @@ server = function(input, output, session) {
       visHierarchicalLayout(direction = "LR", nodeSpacing=200, sortMethod="directed") %>%
         visEdges(arrows = 'to') %>%
         visOptions(manipulation = list(enabled = TRUE, addNode = FALSE,
-                                       deleteNode = FALSE, multiple=TRUE))
+                                       deleteNode = FALSE))
 
      })
     )
@@ -111,6 +113,7 @@ server = function(input, output, session) {
       
       learn_models(structure.json)
       graph.updated('no')
+      learning.done('yes')
     })
   })
   
@@ -149,6 +152,46 @@ server = function(input, output, session) {
                               input$sim_plot_facet_row, input$sim_plot_facet_col
                               )
         }))
+  
+  
+  ### Dropdown in query tab
+  observeEvent(learning.done(), output$ab_dropdown <- renderUI({
+    input_vars <- sim_state$dataset$col.names.to.model() #TODO move to interface
+    splitLayout(
+      selectInput('ab_input_var', 'Intervene On', choices = input_vars, selected = input_vars[1]),
+      selectInput('ab_output_var', 'Effect Variable', choices = input_vars, selected = input_vars[length(input_vars)]),
+      width=6)
+   })
+  )
+  observeEvent(input$ab_input_var, output$ab_choices <- renderUI({
+    input.col <- input$ab_input_var
+    info <- col.info(input.col)
+    
+    if(info[[1]] == 'factor'){
+      splitLayout(
+        selectInput('a_val', paste(input.col,': A'), choices = info[[2]], selected = info[[2]][1]),
+        selectInput('b_val', paste(input.col,': B'), choices = info[[2]], selected = info[[2]][2]),
+        width=6)
+    }
+    else{
+      r <- info[[2]]
+      splitLayout(
+        sliderInput('a_val', paste(input.col,': A'), min = info[[2]][1], max = info[[2]][2],
+                    value =r[1]*0.7+r[2]*0.3, step = diff(r)/100),
+        sliderInput('b_val', paste(input.col,': B'), min = info[[2]][1], max = info[[2]][2],
+                    value =r[1]*0.3+r[2]*0.7, step = diff(r)/100),
+        width=6)
+    }
+    
+  }))
+  
+  observeEvent(input$run_ab_test,  
+               output$ab_test_plot <-  renderPlotly({
+                 ab_test_plot(input$n_sim_samples, 
+                                 input$ab_input_var, input$ab_output_var,
+                                 input$a_val, input$b_val
+                 )
+               }))
   
   # download model in simulate tab
   output$save_model <-  downloadHandler(
@@ -218,6 +261,11 @@ server = function(input, output, session) {
     graph.updated()
   })
   
+  output$learning_done <- renderText({
+    learning.done()
+  })
+  
   outputOptions(output, "graph_updated", suspendWhenHidden=FALSE)
- 
+  outputOptions(output, "learning_done", suspendWhenHidden=FALSE)
+  
 }

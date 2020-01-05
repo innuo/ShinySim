@@ -53,6 +53,16 @@ update_causal_graph<- function(){
   sim_state$graph_list <<- sim_state$sim$structure$to_list()
 }
 
+
+col.info <- function(col){
+  type <- sim_state$dataset$col.types[col]
+  if(type=='factor')
+    choices <- levels(sim_state$dataset$data[[col]])
+  else
+    choices <- range(sim_state$dataset$data[[col]])
+  return(list(type, choices))
+}
+
 sample_from_simulator <- function(){
   
   
