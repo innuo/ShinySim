@@ -101,7 +101,7 @@ server = function(input, output, session) {
   # Plot in data tab
   observeEvent(input$pairs_plot_button, 
                output$data_plot <-  renderPlotly(data_plot(input$x, input$y, 
-                                                input$data_plot_sample_size, input$color, 
+                                                input$n_data_samples, input$color, 
                                                 input$facet_row, input$facet_col )
   ))
 
@@ -187,7 +187,7 @@ server = function(input, output, session) {
   
   observeEvent(input$run_ab_test,  
                output$ab_test_plot <-  renderPlotly({
-                 ab_test_plot(input$n_sim_samples, 
+                 ab_test_plot(input$n_ab_samples, 
                                  input$ab_input_var, input$ab_output_var,
                                  input$a_val, input$b_val
                  )

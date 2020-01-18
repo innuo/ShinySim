@@ -59,7 +59,9 @@ col.info <- function(col){
   if(type=='factor')
     choices <- levels(sim_state$dataset$data[[col]])
   else
-    choices <- range(sim_state$dataset$data[[col]])
+    choices <- range(sim_state$dataset$data[[col]], na.rm = TRUE, finite = TRUE)
+  
+  print (choices)
   return(list(type, choices))
 }
 

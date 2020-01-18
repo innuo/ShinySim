@@ -2,8 +2,6 @@ data_tab <- tabItem(
   tabName = "data",
   br(),br(),br(),
   fluidRow(
-    column(3, sliderInput('data_plot_sample_size', 'Sample Size', min = 100, max = 500,
-                          value = 200, step = 20, round = 0)),
     column(3, actionButton(inputId ="pairs_plot_button", label="Make Plot"), offset=1)
   ),
     

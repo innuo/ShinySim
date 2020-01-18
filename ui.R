@@ -16,7 +16,21 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                badgeStatus = "warning",
                                sliderInput(
                                  inputId = "n_sim_samples",
-                                 label = "Number of observations",
+                                 label = "Simulation",
+                                 min = 50, 
+                                 max = 1000, 
+                                 value = 200
+                               ),
+                               sliderInput(
+                                 inputId = "n_ab_samples",
+                                 label = "A/B Test",
+                                 min = 50, 
+                                 max = 1000, 
+                                 value = 200
+                               ),
+                               sliderInput(
+                                 inputId = "n_data_samples",
+                                 label = "Data View",
                                  min = 50, 
                                  max = 1000, 
                                  value = 200
