@@ -7,7 +7,7 @@ sim_state <- list(dataset_list = list(),
                   graph_list= NULL,
                   sim_df = NULL,
                   sim = NULL,
-                  ready = FALSE)
+                  fit_scores = NA)
 
 
 attach_data <- function(path, header, missing, name){
@@ -36,8 +36,10 @@ learn_models <- function(structure.json){
   withProgress(message = 'Learning Model', value = 0, {
     incProgress(1/2, detail = paste("(conditional samplers)"))
     sim_state$sim$structure_from_json_string(structure.json) 
-    sim_state$sim$learn_samplers()
+    fit_scores = sim_state$sim$learn_samplers(estimate.fit.score = TRUE)
     print("Done learning")
+    sim_state$fit_scores <<- fit_scores
+    print(fit_scores)
   })
   
 }

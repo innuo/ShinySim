@@ -7,7 +7,7 @@ server = function(input, output, session) {
                     graph_list= NULL,
                     sim_df = NULL,
                     sim = NULL,
-                    ready = FALSE)
+                    fit_scores = NA)
   
   num.datasets <- reactiveVal(0)
   learning.done <- reactiveVal('none')
@@ -33,7 +33,7 @@ server = function(input, output, session) {
     edges <- sim_state$graph_list$edges
     graph_data$edges <- cbind.data.frame(id = random_string(nrow(edges)),edges)
     graph.updated('yes')
-    learning.done('yes')
+    learning.done('no')
     
   })
 
@@ -132,6 +132,7 @@ server = function(input, output, session) {
     selected_input_var <- ifelse(is.null(input$sim_plot_input_var), input_vars[1], input$sim_plot_input_var)
     selected_output_var <- ifelse(is.null(input$sim_plot_input_var), output_vars[1], input$sim_plot_output_var)
     
+    
     splitLayout(
       selectInput('sim_plot_input_var', 'X', choices = input_vars, selected = selected_input_var),
       selectInput('sim_plot_output_var', 'Y', choices = output_vars, selected = selected_output_var),
@@ -142,6 +143,17 @@ server = function(input, output, session) {
       width = 6)
      })
   )
+  
+  fit_str <- reactiveVal("")
+  observeEvent(learning.done(), {fit_str(ifelse(any(is.na(sim_state$fit_scores)), "",
+                                                paste0(round(sim_state$fit_scores, 2),
+                                                       "(",
+                                                      names(sim_state$dataset_list), 
+                                                      ")",
+                                                      collapse=", "))) })
+               
+  output$fit_scores <- renderText(paste("Fit Score:", fit_str()))
+  
   
   # Plot in simulate tab
   observeEvent(input$plot_simulated_data,  
@@ -206,6 +218,7 @@ server = function(input, output, session) {
   ##### VISNETWORK
   observeEvent(input$editable_network_graphChange, {
     graph.updated('yes')
+    learning.done('no')
     # If the user added a node, add it to the data frame of nodes.
     if(input$editable_network_graphChange$cmd == "addNode") {
       temp = bind_rows(
