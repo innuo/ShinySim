@@ -215,6 +215,38 @@ server = function(input, output, session) {
          }
     )
   
+  
+  ######## CF tab
+  observeEvent(learning.done(), {
+    shiny::validate(
+      need(learning.done() == 'yes', FALSE)
+    )
+    output$orig_data_table <- 
+                 DT::renderDataTable(sim_state$dataset_list[[1]],
+                                     selection = 'single')}
+    )
+  
+  v <- reactiveVal(c())
+  observe({
+    shiny::validate(
+      need(learning.done() == 'yes', FALSE)
+    )
+    if(!is.null(input$orig_data_table_rows_selected)){
+      v(input$orig_data_table_rows_selected)
+    }
+    else{
+      v(c())
+    }
+  })
+  
+  output$selected_row <- DT::renderDataTable({
+    shiny::validate(
+      need(learning.done() == 'yes', FALSE)
+    )
+    datatable(sim_state$dataset_list[[1]][v(),], editable = TRUE,
+              options = list(searching = FALSE, paging = FALSE, info = FALSE))
+  })
+  
   ##### VISNETWORK
   observeEvent(input$editable_network_graphChange, {
     graph.updated('yes')
