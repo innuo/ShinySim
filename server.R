@@ -247,6 +247,19 @@ server = function(input, output, session) {
               options = list(searching = FALSE, paging = FALSE, info = FALSE))
   })
   
+  observeEvent(input[["selected_row_cell_edit"]], 
+               output$cf_row <- DT::renderDataTable({
+    cell <- input[["selected_row_cell_edit"]]
+    df <- sim_state$dataset_list[[1]][v(),]
+    col.name <- names(sim_state$dataset_list[[1]])[cell$col]
+    do <- list()
+    do[[col.name]] <- cell$value
+    cf <- sim_state$sim$counterfactual(df, do)
+    cf <- cf %>% 
+      mutate_if(is.numeric, round)
+    datatable(cf,  options = list(searching = FALSE, paging = FALSE, info = FALSE))
+  }))
+  
   ##### VISNETWORK
   observeEvent(input$editable_network_graphChange, {
     graph.updated('yes')

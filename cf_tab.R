@@ -15,7 +15,9 @@ cf_tab <- tabItem(
   fluidRow(
       column(12,div(DT::dataTableOutput("selected_row"), style = "font-size:110%"))
   ),
-  
+  fluidRow(
+    column(12,div(DT::dataTableOutput("cf_row"), style = "font-size:110%"))
+  ),
   br()
   
 )

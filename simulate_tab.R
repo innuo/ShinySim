@@ -18,7 +18,12 @@ simulate_tab <- tabItem(
   ),
   conditionalPanel(
     condition = "output.graph_updated == 'no'",
-    fluidRow(span(textOutput("fit_scores"), style="color:blue;font-size:12px; font-style: bold")),
+    fluidRow(
+      textOutput('fit_scores'),
+      tags$head(tags$style("#fit_scores{color: blue;
+                             font-size: 16px;
+                         font-style: bold;
+                         }"))),
     fluidRow(uiOutput("simulate_ui")),
     fluidRow(plotlyOutput("simulation_plot"))
   ),
