@@ -217,6 +217,15 @@ server = function(input, output, session) {
   
   
   ######## CF tab
+  row <- reactiveVal(c())
+  do_arg <- reactiveVal(list())
+  
+  
+  observeEvent(input$cf_reset,{
+    row(c())
+    do_arg(list())
+  })
+  
   observeEvent(learning.done(), {
     shiny::validate(
       need(learning.done() == 'yes', FALSE)
@@ -226,16 +235,15 @@ server = function(input, output, session) {
                                      selection = 'single')}
     )
   
-  v <- reactiveVal(c())
   observe({
     shiny::validate(
       need(learning.done() == 'yes', FALSE)
     )
     if(!is.null(input$orig_data_table_rows_selected)){
-      v(input$orig_data_table_rows_selected)
+      row(input$orig_data_table_rows_selected)
     }
     else{
-      v(c())
+      row(c())
     }
   })
   
@@ -243,21 +251,31 @@ server = function(input, output, session) {
     shiny::validate(
       need(learning.done() == 'yes', FALSE)
     )
-    datatable(sim_state$dataset_list[[1]][v(),], editable = TRUE,
+    datatable(sim_state$dataset_list[[1]][row(),], editable = TRUE,
               options = list(searching = FALSE, paging = FALSE, info = FALSE))
   })
   
-  observeEvent(input[["selected_row_cell_edit"]], 
-               output$cf_row <- DT::renderDataTable({
+  observeEvent(input[["selected_row_cell_edit"]],{ 
     cell <- input[["selected_row_cell_edit"]]
-    df <- sim_state$dataset_list[[1]][v(),]
+    
     col.name <- names(sim_state$dataset_list[[1]])[cell$col]
     do <- list()
     do[[col.name]] <- cell$value
-    cf <- sim_state$sim$counterfactual(df, do)
-    cf <- cf %>% 
-      mutate_if(is.numeric, round)
-    datatable(cf,  options = list(searching = FALSE, paging = FALSE, info = FALSE))
+    
+    do_arg(do)})
+  
+  observeEvent(do_arg(), output$cf_row <- DT::renderDataTable({
+    if(length(do_arg()) < 1){
+      datatable( sim_state$dataset_list[[1]][c(),], 
+                 options = list(searching = FALSE, paging = FALSE, info = FALSE))
+    }
+    else{
+      df <- sim_state$dataset_list[[1]][row(),]
+      cf <- sim_state$sim$counterfactual(df, do_arg())
+      cf <- cf %>% 
+        mutate_if(is.numeric, round, 1)
+      datatable(cf,  options = list(searching = FALSE, paging = FALSE, info = FALSE))
+    }
   }))
   
   ##### VISNETWORK

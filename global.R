@@ -24,9 +24,9 @@ get_dataset_from_cols <- function(cols){
   if(length(dataset_ids) > 0){
     title <- paste(names(sim_state$dataset_list)[dataset_ids], collapse=", ")
     data <- sim_state$dataset$dataset_from_vars(cols, impose.minimum.size=FALSE)
-    print(data)
-    print(names(sim_state$dataset_list))
-    print(dataset_ids)
+    #print(data)
+    #print(names(sim_state$dataset_list))
+    #print(dataset_ids)
   }
   else{
     title <- paste("No raw datasets with these columns")
@@ -34,9 +34,9 @@ get_dataset_from_cols <- function(cols){
     names(data) <- cols
   }
   
-  print(summary(data))
+  #print(summary(data))
   data <- na.omit(data[, cols, drop=FALSE])
-  print(title)
+  #print(title)
   return(list(data, title))
   
 }

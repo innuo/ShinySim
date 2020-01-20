@@ -63,7 +63,7 @@ col.info <- function(col){
   else
     choices <- range(sim_state$dataset$data[[col]], na.rm = TRUE, finite = TRUE)
   
-  print (choices)
+  #print (choices)
   return(list(type, choices))
 }
 

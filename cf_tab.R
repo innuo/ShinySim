@@ -3,6 +3,9 @@ cf_tab <- tabItem(
   
   br(),
   h1("Counterfactual Query (Beta)"),
+  
+  fluidRow(
+    column(12,actionButton("cf_reset", "Reset"))),
   br(),
   fluidRow(
       column(12,
