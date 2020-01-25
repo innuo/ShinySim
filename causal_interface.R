@@ -5,9 +5,11 @@ library(CausalSimR)
 sim_state <- list(dataset_list = list(),
                   dataset = NULL,
                   graph_list= NULL,
-                  sim_df = NULL,
                   sim = NULL,
                   fit_scores = NA)
+
+sim_data <- list(sim_df=NULL,
+                 ab_df=NULL)
 
 
 attach_data <- function(path, header, missing, name){

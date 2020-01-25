@@ -1,6 +1,5 @@
 simulate_tab <- tabItem(
   tabName = "sim",
-  
   br(),
   #actionButton(inputId ="make_graph", label="Guess Graph"),
  

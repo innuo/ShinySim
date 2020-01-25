@@ -5,9 +5,11 @@ server = function(input, output, session) {
   sim_state <<- list(dataset_list = list(),
                     dataset = NULL,
                     graph_list= NULL,
-                    sim_df = NULL,
                     sim = NULL,
                     fit_scores = NA)
+  
+  sim_data <<- list(sim_df=NULL,
+                   ab_df=NULL)
   
   num.datasets <- reactiveVal(0)
   learning.done <- reactiveVal('none')
@@ -139,6 +141,7 @@ server = function(input, output, session) {
       selectInput('sim_plot_facet_row', 'Facet Row', c(None = '.', input_vars)),
       selectInput('sim_plot_facet_col', 'Facet Column', c(None = '.', input_vars)),
       actionButton(inputId='plot_simulated_data', label="Plot"),
+      downloadButton(outputId='save_sim_data', label="Simulated"),
       downloadButton(outputId='save_model', label="Save Model"),
       width = 6)
      })
@@ -205,6 +208,21 @@ server = function(input, output, session) {
                  )
                }))
   
+  observeEvent(input$run_ab_test,  
+               output$ab_download <-  renderUI({
+                 downloadButton(outputId='save_ab_data', label="Download Data")
+               }))
+  
+  output$save_ab_data <-  downloadHandler(
+    filename = function() {
+      "ab_test_data.csv"
+    },
+    content = function(file) {
+      write.csv(format(sim_data$ab_df, digits=2), file, quote=F, row.names = F)
+    }
+  )
+  
+  
   # download model in simulate tab
   output$save_model <-  downloadHandler(
          filename = function() {
@@ -214,7 +232,15 @@ server = function(input, output, session) {
            saveRDS(sim_state, file)
          }
     )
-  
+  # download simulated in simulate tab
+  output$save_sim_data <-  downloadHandler(
+    filename = function() {
+      "simulated_samples.csv"
+    },
+    content = function(file) {
+      write.csv(format(sim_data$sim_df, digits=2), file, quote=F, row.names = F)
+    }
+  )
   
   ######## CF tab
   row <- reactiveVal(c())

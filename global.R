@@ -101,7 +101,7 @@ simulation_plot <- function(num_samples, input.col, output.col,
   
   p <- p + ggtitle(title)
   
-  sim_state$sim.df <<- sim.df
+  sim_data$sim_df <<- sim.df
   
   ggplotly(p)
   
@@ -130,6 +130,8 @@ ab_test_plot <- function(num_samples,
     p <- p + geom_bar()
   else
     p <- p + geom_density(alpha = 0.5)
+  
+  sim_data$ab_df <<- df
   
   ggplotly(p)
   

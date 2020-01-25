@@ -1,6 +1,5 @@
 query_tab <- tabItem(
   tabName = "query",
-  
   br(),
   
   fluidRow(
@@ -16,6 +15,7 @@ query_tab <- tabItem(
     actionButton("run_ab_test", "Run Experiment")
   ),
   fluidRow(plotlyOutput("ab_test_plot")),
+  fluidRow(uiOutput("ab_download")),
   br()
   
 )
