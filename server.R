@@ -69,7 +69,7 @@ server = function(input, output, session) {
     )
     
     visNetwork(graph_data$nodes, graph_data$edges, width="100%") %>%
-      visHierarchicalLayout(direction = "LR", nodeSpacing=200, sortMethod="directed") %>%
+      #visHierarchicalLayout(direction = "LR", nodeSpacing=200, sortMethod="directed") %>%
         visEdges(arrows = 'to') %>%
         visOptions(manipulation = list(enabled = TRUE, addNode = FALSE,
                                        deleteNode = FALSE))
