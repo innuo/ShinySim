@@ -5,7 +5,7 @@ query_tab <- tabItem(
   fluidRow(
     width = 12,
     align = "center",
-    h1("A/B Testing")
+    h1("New A/B Testing")
   ),
   br(),
   conditionalPanel(
