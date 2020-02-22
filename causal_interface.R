@@ -1,3 +1,4 @@
+# To use the latest version run 'devtools::install_github("innuo/CausalSimR")' at R console 
 library(CausalSimR)
 
 
