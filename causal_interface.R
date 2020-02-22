@@ -1,6 +1,6 @@
 # To use the latest version run 'devtools::install_github("innuo/CausalSimR")' at R console 
 library(CausalSimR)
-
+# library(readxl) # To use XL files in the future
 
 
 sim_state <- list(dataset_list = list(),
@@ -15,6 +15,8 @@ sim_data <- list(sim_df=NULL,
 
 attach_data <- function(path, header, missing, name){
   df <- read.csv(path, header = header == "True", na.strings = c("", "NA"))
+  #test_tibble <- read_excel(path)
+  #df <- as.data.frame(test_tibble)
   if(missing == "Drop") df <- na.omit(df)
   
   dataset_name <- tail(unlist(strsplit(name, "[/]|[\\\\]")), 1)
