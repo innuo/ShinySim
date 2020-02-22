@@ -5,7 +5,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                          dashboardHeaderPlus(
                            fixed = TRUE,
                            title = tagList(
-                             span(class = "logo-lg", "Causal Sim")),
+                             span(class = "logo-lg", "Causal Sim Test")),
                            enable_rightsidebar = TRUE,
                            rightSidebarIcon = "microscope",
                            left_menu = tagList(
@@ -176,7 +176,7 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                          title = "shinyDashboardPlus",
                          footer = dashboardFooter(
                            left_text = "Metonymize, Inc",
-                           right_text = "© 2019"
+                           right_text = "© 2020"
                       )
   )
 
