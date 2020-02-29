@@ -57,13 +57,11 @@ ui <- dashboardPagePlus(skin = "yellow", md = FALSE,
                                
                                # Horizontal line ----
                                tags$hr(),
-                               prettyRadioButtons(
-                                 inputId = "header",
-                                 label = "Header", 
-                                 thick = TRUE,
-                                 choices = c("True", "False"),
-                                 animation = "smooth"
-                               ),
+                               checkboxGroupInput("header", 
+                                                  label = "Header Rows",
+                                                  selected = c("header"),
+                                                  choiceNames = c("Groups", "Input/Output", "Header"),
+                                                  choiceValues =  c("groups", "io", "header")),
                                tags$hr(),
                                prettyRadioButtons(
                                  inputId = "missing",

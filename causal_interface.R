@@ -12,25 +12,73 @@ sim_data <- list(sim_df=NULL,
                  ab_df=NULL)
 
 
-attach_data <- function(path, header, missing, name){
-  df <- read.csv(path, header = header == "True", na.strings = c("", "NA"))
+
+check_data <- function(df){
+  all_ok <- TRUE
+  alert_text <- ""
+  ii <- 0
+  col.types <- do.call(rbind, lapply(df, class))
+  unhandled.cols <- !(col.types[,1] %in% c("numeric", "factor"))
+ 
+  if (any(unhandled.cols)){
+    all_ok <- FALSE
+    ii <- ii+1
+    alert_text <- paste0(alert_text, "\n", ii, ". Not all columns are numeric or categorical")
+  }
+  for(i in 1:nrow(col.types)){
+    if((col.types[i, 1] == "factor") && length(levels(df[,i])) > 10){
+      all_ok <- FALSE
+      ii <- ii+1
+      alert_text <- paste0(alert_text, "\n", ii, ". Too many levels in column: ", names(df)[i])
+    }
+  }
+ 
+  return(list(all_ok=all_ok, alert_text=alert_text)) 
+}
+
+attach_data <- function(path, header_rows, missing, name){
+  groups <- NULL
+  io_tags <- NULL
+  skiplines = 0
+  if("groups" %in% header_rows){
+    header <- scan(path, nlines = 1, what = character())
+    groups <- strsplit(header, ",")[[1]]
+    skiplines = 1
+  }
+  if("io" %in% header_rows){
+    header <- scan(path, nlines = 1, skip = skiplines, what = character())
+    io_tags = tolower(strsplit(header, ",")[[1]])
+    skiplines = skiplines + 1
+  }
+
+  df <- read.csv(path, header = "header" %in% header_rows, skip = skiplines, na.strings = c("", "NA"))
   if(missing == "Drop") df <- na.omit(df)
+  
+  
   
   dataset_name <- tail(unlist(strsplit(name, "[/]|[\\\\]")), 1)
   sim_state$dataset_list[[dataset_name]] <<- df
   print("In attach")
   print(names(sim_state$dataset_list))
   
+  input_vars <- NULL
+  output_vars <- NULL
+  if(!is.null(io_tags)){
+    input_vars <- names(df)[io_tags=="input"]
+    output_vars <- names(df)[io_tags=="output"]
+  }
+
   withProgress(message = 'Attaching Data', value = 0, {
     incProgress(1/2, detail = paste("(Rbind and Fill)"))
     if(is.null(sim_state$dataset)){
-      sim_state$dataset <<- DataSet$new(df)
+      sim_state$dataset <<- DataSet$new(df, input_vars=input_vars, output_vars=output_vars)
     }
     else{
       sim_state$dataset$attach_data(df)
     }
   }
   )
+  return(check_data(df))
 }
 
 

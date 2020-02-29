@@ -1,11 +1,11 @@
 simulate_tab <- tabItem(
   tabName = "sim",
+  useShinyalert(),
   br(),
   #actionButton(inputId ="make_graph", label="Guess Graph"),
  
   br(),
   visNetworkOutput('editable_network'),
-
 
   splitLayout(
     #textOutput("graph_updated"),

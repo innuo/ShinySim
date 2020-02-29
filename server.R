@@ -40,8 +40,11 @@ server = function(input, output, session) {
   })
 
   observeEvent(input$file1$datapath, {
-           attach_data(input$file1$datapath, 
+           ret <- attach_data(input$file1$datapath, 
                     input$header, input$missing, input$file1$name)
+           if(!ret[["all_ok"]]){
+             shinyalert(ret[["alert_text"]], type="warning")
+           }
            num.datasets(num.datasets()+1)
            graph.updated('yes')
                  
